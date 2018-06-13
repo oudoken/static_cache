@@ -1,0 +1,19 @@
+<?xml version="1.0" encoding="utf-8"?>
+<e107Plugin name="static_cache" lan="LAN_PLUGIN_STCACHE_NAME" version="1.0" date="2018-06-01" compatibility="2.0" installRequired="true">
+	<author name="oudoken@gmail.com" url="http://www.tnw.it" email="info@tnw.it" />
+	<description lan="LAN_PLUGIN_STCACHE_DESCRIPTION">Static cache plugin, generate static files with phpFastCache https://www.phpfastcache.com/</description>
+	<copyright>oudoken@gmail.com</copyright>
+	<adminLinks>
+		<link url='admin_config.php' description='Configure Static Cache' icon='images/st_cache_32.png' iconSmall='images/st_cache_16.png' primary='true' >LAN_CONFIGURE</link>		
+	</adminLinks>
+	<siteLinks>
+	</siteLinks>
+	<pluginPrefs>
+		<pref name="sc_enabled">1</pref>
+		<pref name="sc_exclude_list">login.php,search.php</pref>
+		<pref name="sc_cache_path">cache</pref>
+		<pref name="sc_expiration">1800</pref>
+		<pref name="sc_gzip_server">0</pref>
+		<pref name="sc_minification">0</pref>
+	</pluginPrefs>
+</e107Plugin>
