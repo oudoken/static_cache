@@ -10,6 +10,7 @@
 +----------------------------------------------------------------------------+
 */
 
+define("LAN_PLUGIN_STCACHE_NAME", "Static Cache");
 define("LAN_PLUGIN_STATIC_CACHE_NAME", "Static Cache");
 define("LAN_STATIC_CACHE_ADMIN_01", "General configuration");
 define("LAN_STATIC_CACHE_ADMIN_02", "Cache files list");
