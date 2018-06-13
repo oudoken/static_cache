@@ -10,6 +10,7 @@ The actual versione of e107 do not provide an e_output for plugins to capture ou
 You must modify the files in e107 folders:
 
 e107_handlers\plugin_class.php
+
 e107_core\templates\footer_default.php
 
 With  the files in to_e107/ of this repo.
