@@ -5,7 +5,7 @@ The plugin generate static html files for any page except those excluded in conf
 Please be aware that page containing forms (ie: login, search, etc) may NOT work!
 Use at Your risk.
 
-The actual version of e107 do not provide an e_output for plugins to capture output buffering at the end of the page (a pull commit has been made so maybe in the next version).
+NOTE: Use the github master version of e107 wich already include the "e_output" hook for plugins.
 
 You must modify the files in e107 folders:
 
