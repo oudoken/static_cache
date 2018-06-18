@@ -159,13 +159,21 @@ class static_cache_admin_ui extends e_admin_ui
 			'data'  => 'int',
 			'tab'   => 0,
 		),
+		'sc_gzip_server_tip'    => array(
+			'title' => '',
+			'help'  => IS_GZIP_SET_TIP,
+			'type'  => 'method',
+			'data'  => 'str',
+			'tab'   => 0,
+		),
 		'sc_gzip_server'    => array(
 			'title' => LAN_STATIC_CACHE_ADMIN_16,
-			'help'  => LAN_STATIC_CACHE_ADMIN_17,
+			'help'  => LAN_STATIC_CACHE_ADMIN_17.' '.IS_GZIP_SET,
 			'type'  => 'boolean',
 			'data'  => 'int',
 			'tab'   => 0,
 		),
+    /*
 		'sc_minification'    => array(
 			'title' => LAN_STATIC_CACHE_ADMIN_18,
 			'help'  => LAN_STATIC_CACHE_ADMIN_19,
@@ -173,6 +181,7 @@ class static_cache_admin_ui extends e_admin_ui
 			'data'  => 'int',
 			'tab'   => 0,
 		),
+    */
 	);
 
 	/**
@@ -180,10 +189,51 @@ class static_cache_admin_ui extends e_admin_ui
 	 */
 	public function init()
 	{
+		$isGzipSet = (!$this->getGzipEncoding())? 0 : 1;
+		define('IS_GZIP_SET', $isGzipSet);
+		if($isGzipSet==1){
+			define('IS_GZIP_SET_TIP', LAN_STATIC_CACHE_ADMIN_29);
+		}else{
+			define('IS_GZIP_SET_TIP', LAN_STATIC_CACHE_ADMIN_30);
+		}
 		$prefs = e107::getPlugConfig('static_cache')->getPref();
-    
 	}
-
+  
+  public function getGzipEncoding(){
+    
+    $get = array();
+    $options = array();
+    
+    $defaults = array(
+        CURLOPT_URL => "https://www.montagnavda.it/". (strpos("https://www.montagnavda.it/", '?') === FALSE ? '?' : ''). http_build_query($get),
+        CURLOPT_HEADER => TRUE,
+        CURLOPT_RETURNTRANSFER => TRUE,
+        CURLOPT_TIMEOUT => 4,
+        CURLOPT_SSL_VERIFYPEER => 0,
+        CURLOPT_ENCODING => 'gzip,deflate'
+    );
+   
+    $ch = curl_init();
+    curl_setopt_array($ch, ($options + $defaults));
+    if( ! $result = curl_exec($ch)){
+      trigger_error(curl_error($ch));
+    }
+    
+    curl_close($ch);
+    
+    $headers = [];
+    $data = explode("\n",$result);
+    $headers['status'] = $data[0];
+    array_shift($data);
+    
+    foreach($data as $part){
+      $middle=explode(":",$part);
+      $headers[trim($middle[0])] = trim($middle[1]);
+    }
+    
+    return $headers; 
+  }
+  
 }
 
 /**
@@ -223,7 +273,6 @@ class static_cache_admin_cached_ui extends e_admin_ui
 	public function init()
 	{
 		$prefs = e107::getPlugConfig('static_cache')->getPref();
-    
 	}
 
 
