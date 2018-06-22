@@ -25,16 +25,23 @@ if( (ST_CACHE_ENABLED===1 && !USER) ){
   
   //scdb object
   $scdb       = new db();
+  //22/06/2018 09:53:20 - oudoken
+  //FIX delete key if already in database
+  $scdb->db_Delete(
+                  'static_cache_cpages',
+                  'scache_key = \''.$resultsItem->getKey().'\''
+                  );
+  
   //insert page in db
-  $scdb = $scdb->db_Insert(
-                            'static_cache_cpages',
-                            array(
-                            'scache_key'      => $resultsItem->getKey(),
-                            'scache_url'      => $keyword_webpage,
-                            'scache_path'     => $sToDb_key,
-                            'scache_lastmod'  => time()
-                            )
-                            );
+  $scdb->db_Insert(
+                  'static_cache_cpages',
+                  array(
+                  'scache_key'      => $resultsItem->getKey(),
+                  'scache_url'      => $keyword_webpage,
+                  'scache_path'     => $sToDb_key,
+                  'scache_lastmod'  => time()
+                  )
+                  );
   
   ob_end_flush();
 }
