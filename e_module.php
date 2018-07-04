@@ -58,6 +58,7 @@ $oStaticCache = CacheManager::getInstance('files');
 $aScConfig     = $oStaticCache->getConfig();
 
 $keyword_webpage     = $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'].$_SERVER['QUERY_STRING'];
+$keyword_webpage_nu  = $_SERVER['HTTP_HOST'].$_SERVER['REQUEST_URI'];
 $keyword_webpage_md5 = md5($keyword_webpage);
 
 // try to get from Cache first.

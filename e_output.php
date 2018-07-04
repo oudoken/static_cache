@@ -37,7 +37,7 @@ if( (ST_CACHE_ENABLED===1 && !USER) ){
                   'static_cache_cpages',
                   array(
                   'scache_key'      => $resultsItem->getKey(),
-                  'scache_url'      => $keyword_webpage,
+                  'scache_url'      => $keyword_webpage_nu,
                   'scache_path'     => $sToDb_key,
                   'scache_lastmod'  => time()
                   )
