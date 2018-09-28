@@ -9,6 +9,12 @@ if(!e107::isInstalled('static_cache'))
 	return '';
 }
 
+//DO NOT LOAD PLUGIN AND LIBS IN ADMIN AREA
+//#issue #2
+if ( defset('e_ADMIN_AREA') === true ) {
+  return '';
+}
+
 //full caching system  START
 
 //get plugin configuration
