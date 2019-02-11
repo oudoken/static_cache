@@ -168,7 +168,7 @@ class static_cache_admin_ui extends e_admin_ui
 		),
 		'sc_gzip_server'    => array(
 			'title' => LAN_STATIC_CACHE_ADMIN_16,
-			'help'  => LAN_STATIC_CACHE_ADMIN_17.' '.IS_GZIP_SET,
+			'help'  => LAN_STATIC_CACHE_ADMIN_17,
 			'type'  => 'boolean',
 			'data'  => 'int',
 			'tab'   => 0,
@@ -182,6 +182,13 @@ class static_cache_admin_ui extends e_admin_ui
 			'tab'   => 0,
 		),
     */
+		'sc_cache_file_ext'    => array(
+			'title' => LAN_STATIC_CACHE_ADMIN_31,
+			'help'  => LAN_STATIC_CACHE_ADMIN_32,
+			'type'  => 'dropdown',
+			'data'  => 'str',
+			'tab'   => 0,
+		),
 	);
 
 	/**
@@ -191,26 +198,51 @@ class static_cache_admin_ui extends e_admin_ui
 	{
 		$isGzipSet = (!$this->getGzipEncoding())? 0 : 1;
 		define('IS_GZIP_SET', $isGzipSet);
+		define('IS_GZIP_TYPE', $this->getGzipEncoding());
 		if($isGzipSet==1){
-			define('IS_GZIP_SET_TIP', LAN_STATIC_CACHE_ADMIN_29);
+			define('IS_GZIP_SET_TIP', LAN_STATIC_CACHE_ADMIN_29.'<br /> ENCODING USED ON SERVER: '.IS_GZIP_TYPE);
 		}else{
 			define('IS_GZIP_SET_TIP', LAN_STATIC_CACHE_ADMIN_30);
 		}
 		$prefs = e107::getPlugConfig('static_cache')->getPref();
+		global $e107;
+		define('ST_CACHE_ENABLED',intval($sc_prefs['sc_enabled']));
+		define('ST_CACHE_EXPIRATION',intval($sc_prefs['sc_expiration']));
+		//also minify content?
+		define('ST_CACHE_MIN_ENABLED',intval($sc_prefs['sc_minification']));
+		//gzip compression enabled?
+		define('ST_CACHE_GZIP_ENABLED',intval($sc_prefs['sc_gzip_server']));
+		//pages excluded from cache
+		define('ST_CACHE_EXCLUDE_PAGES',$sc_prefs['sc_exclude_list']);
+		//path to save cache
+		define('ST_CACHE_SAVE_PATH',str_replace('/', DIRECTORY_SEPARATOR,e_ROOT.$e107->getFolder('web').$sc_prefs['sc_cache_path']));
+		//cache file extension
+		define('ST_CACHE_FILE_EXT',$sc_prefs['sc_cache_file_ext']);
+		
+		//phpFastCache allowed file types see: https://github.com/PHPSocialNetwork/phpfastcache/issues/467
+		$pfc_allowed_files = array();
+		
+		$pfc_allowed_files['txt']     = 'txt';
+		$pfc_allowed_files['cache']   = 'cache';
+		$pfc_allowed_files['db']      = 'db';
+		$pfc_allowed_files['pfc']     = 'pfc';
+		
+		$this->prefs['sc_cache_file_ext']['writeParms'] = $pfc_allowed_files;
+		$this->prefs['sc_cache_file_ext']['readParms']  = $pfc_allowed_files;
 	}
   
   public function getGzipEncoding(){
     
-    $get = array();
+    $get     = array();
     $options = array();
     
     $defaults = array(
-        CURLOPT_URL => "https://www.montagnavda.it/". (strpos("https://www.montagnavda.it/", '?') === FALSE ? '?' : ''). http_build_query($get),
+        CURLOPT_URL => SITEURL . http_build_query($get),
         CURLOPT_HEADER => TRUE,
         CURLOPT_RETURNTRANSFER => TRUE,
         CURLOPT_TIMEOUT => 4,
         CURLOPT_SSL_VERIFYPEER => 0,
-        CURLOPT_ENCODING => 'gzip,deflate'
+        CURLOPT_ENCODING => '' //gzip,deflate '' = all
     );
    
     $ch = curl_init();
@@ -222,16 +254,21 @@ class static_cache_admin_ui extends e_admin_ui
     curl_close($ch);
     
     $headers = [];
-    $data = explode("\n",$result);
+    $data    = explode("\n",$result);
     $headers['status'] = $data[0];
     array_shift($data);
     
+    $content_encoding = '';
+    
     foreach($data as $part){
       $middle=explode(":",$part);
-      $headers[trim($middle[0])] = trim($middle[1]);
+      //$headers[trim($middle[0])] = trim($middle[1]);
+      if ('content-encoding'==strtolower($middle[0])){
+        $content_encoding = trim($middle[1]);
+      }
     }
     
-    return $headers; 
+    return $content_encoding; 
   }
   
 }
@@ -306,7 +343,7 @@ class static_cache_admin_cached_ui extends e_admin_ui
 
 <script type="text/javascript" src="<?php echo e_PLUGIN; ?>static_cache/libs/spin-js.min.js"></script>
 
-<link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/font-awesome/4.2.0/css/font-awesome.min.css">
+<link rel="stylesheet" href="<link rel="stylesheet" href="https://use.fontawesome.com/releases/v5.7.1/css/all.css" integrity="sha384-fnmOCqbTlWIlj8LyTjo7mOUStjsKC4pOpQbqyi7RrhN7udi9RwhKkMHpvLbHG9Sr" crossorigin="anonymous">
 <link rel="stylesheet" href="<?php echo e_PLUGIN; ?>static_cache/libs/bootstrap-table.css">
 <link rel="stylesheet" href="<?php echo e_PLUGIN; ?>static_cache/libs/bootstrap-table-sticky-header.css">
 
@@ -398,23 +435,6 @@ class static_cache_admin_cached_ui extends e_admin_ui
 
 $(document).ready(function() {
 
-<?php
-  $oSql = e107::getDb();
-  $oSql->select('static_cache_cpages', 'scache_id, scache_key, scache_url, scache_path, scache_lastmod');
-  $res_lines = Array();
-  while($row = $oSql->fetch()){
-    //push to rows array...
-    $row['scache_lastmod'] = gmdate("Y-m-d\TH:i:s\Z",$row['scache_lastmod']);
-    $row['btn_delete'] = '<button title="'.LAN_STATIC_CACHE_ADMIN_20.'" class="btn btn-xs btn-danger glyphicon glyphicon-remove " onclick="cnt_delete(\''.$row['scache_id'].'\');" ></span>' ;
-    array_push($res_lines, $row);
-  }
-  
-  $arr_results = array( "d" => array( "total" => $oSql->rowCount(), "rows" => $res_lines ) );
-  
-  echo 'var data = '.json_encode( $arr_results ).';';
-  echo "\n";
-  
-?>
   if ( $('.navbar-fixed-top').css('height') ) {
       stickyHeaderOffsetY = +$('.navbar-fixed-top').css('height').replace('px','');
   }
@@ -433,13 +453,52 @@ $(document).ready(function() {
   $('#tbl-cnt-data').bootstrapTable({
         classes: 'table table-responsive table-striped table-bordered',
         undefinedText: '',
-        data:data.d.rows,
+        ajax: function(params){
+                //console.log(params);
+                
+                //console.log(test);
+                let tableData = params.data;
+                
+                let serverCall = {};
+                
+                // add limits and offset provided by bootstrap table
+                serverCall["page_offset"] = tableData.offset;
+                serverCall["page_size"]   = tableData.limit;
+                serverCall["sort_field"]  = tableData.sort;
+                serverCall["sort_order"]  = tableData.order;
+                serverCall["search_str"]  = tableData.search;
+                //serverCall["data[]"]  = tableData.[selected_data];
+                
+                var data = {
+                  'params' : serverCall
+                };
+                
+            jQuery.ajax({
+              url: '<?php echo e_PLUGIN; ?>static_cache/read_cache_list.php',
+              async: true,
+              //crossDomain: true,
+              type: "post",
+              //beforeSend: function(xhr) { xhr.setRequestHeader("Authorization", "Basic " + btoa('string' + ":" + 'string' )); },
+              data: data,
+              dataType: "json",
+              //contentType: "application/json; charset=utf-8",
+              success: function(s) {
+                //return s.d;
+                params.success(s.d);
+                //console.log(s);
+              }
+            });
+        },
+        cache: false,
+        dataField: 'rows',
+        totalField: 'total',
+        //data:data.d.rows,
         iconsPrefix: 'fa',
         showRefresh: true,
         search: true,
-        pageSize: 100,
+        pageSize: 20,
         pagination: true,
-        sidePagination: 'client',
+        sidePagination: 'server',
         sortable: true,
         cookie: true,
         mobileResponsive: true,
@@ -447,8 +506,8 @@ $(document).ready(function() {
         stickyHeaderOffsetY: stickyHeaderOffsetY + 'px',
         showExport: true,
         showColumns: true,
-        exportDataType: 'all',
-        exportTypes: ['csv', 'txt','json','xml','excel','sql','pdf'],
+        exportDataType: 'basic',
+        exportTypes: ['csv','excel','pdf'],
         maintainSelected: true,
         showMultiSort: true,
         sortPriority: tbl_spriority,
@@ -456,7 +515,7 @@ $(document).ready(function() {
         paginationLastText: "Last",
         paginationPreText: "Previous",
         paginationNextText: "Next",
-        pageList: ['10','25','50','100','150','200'],
+        pageList: ['20','50','100'],
         icons: {
             paginationSwitchDown: 'fa-caret-square-o-down',
             paginationSwitchUp: 'fa-caret-square-o-up',
@@ -469,7 +528,7 @@ $(document).ready(function() {
         },
         columns: data_cols,
       //rows: data.d.rows,
-      total: data.d.total,
+      //total: data.d.total,
       
     });
 });

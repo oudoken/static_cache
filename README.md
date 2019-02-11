@@ -5,6 +5,6 @@ The plugin generate static html files for any page except those excluded in conf
 Please be aware that page containing forms (ie: login, search, etc) may NOT work!
 Use at Your risk.
 
-NOTE: Use e107 v2.1.8 or later! (require e_output.php)
+NOTE: Use the github master version of e107 wich already include the "e_output" hook for plugins.
 
 

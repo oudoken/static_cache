@@ -15,5 +15,6 @@
 		<pref name="sc_expiration">1800</pref>
 		<pref name="sc_gzip_server">0</pref>
 		<pref name="sc_minification">0</pref>
+		<pref name="sc_cache_file_ext">txt</pref>
 	</pluginPrefs>
 </e107Plugin>
