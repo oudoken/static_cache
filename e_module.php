@@ -9,12 +9,6 @@ if(!e107::isInstalled('static_cache'))
 	return '';
 }
 
-//DO NOT LOAD PLUGIN AND LIBS IN ADMIN AREA
-//#issue #2
-if ( defset('e_ADMIN_AREA') === true ) {
-  return '';
-}
-
 //full caching system  START
 
 //get plugin configuration
@@ -30,6 +24,12 @@ define('ST_CACHE_GZIP_ENABLED',intval($sc_prefs['sc_gzip_server']));
 define('ST_CACHE_EXCLUDE_PAGES',$sc_prefs['sc_exclude_list']);
 //path to save cache
 define('ST_CACHE_SAVE_PATH',str_replace('/', DIRECTORY_SEPARATOR,e_ROOT.$e107->getFolder('web').$sc_prefs['sc_cache_path']));
+
+//DO NOT LOAD PLUGIN AND LIBS IN ADMIN AREA
+//#issue #2
+if ( defset('e_ADMIN_AREA') === true ) {
+  return '';
+}
 
 $aPageExcluded = explode(',', ST_CACHE_EXCLUDE_PAGES );
 $sCurrentPage  = basename($_SERVER['SCRIPT_FILENAME']); //add ,'.php' to remove extension...
